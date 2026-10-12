@@ -1,14 +1,33 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
+const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || 'localhost';
+const RESERVED_SLUGS = new Set(['www', 'admin', 'api']);
 
 const TENANT_TOKEN_KEY = 'zookahq_tenant_token';
 
+export function getBaseDomain(): string {
+  return BASE_DOMAIN;
+}
+
+function isLoopbackHost(host: string): boolean {
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
 function getTenantSlug(): string | null {
   const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1' || host === 'admin.localhost') {
+  if (isLoopbackHost(host) || host === BASE_DOMAIN || host === `admin.${BASE_DOMAIN}`) {
     return null;
   }
+
+  if (host.endsWith(`.${BASE_DOMAIN}`)) {
+    const slug = host.slice(0, -(BASE_DOMAIN.length + 1));
+    if (slug && !slug.includes('.') && !RESERVED_SLUGS.has(slug)) {
+      return slug;
+    }
+    return null;
+  }
+
   const parts = host.split('.');
-  if (parts.length >= 2 && parts[0] !== 'www') {
+  if (parts.length >= 2 && !RESERVED_SLUGS.has(parts[0])) {
     return parts[0];
   }
   return null;
@@ -16,7 +35,7 @@ function getTenantSlug(): string | null {
 
 export function isPlatformHost(): boolean {
   const host = window.location.hostname;
-  return host === 'admin.localhost' || host === 'localhost' || host === '127.0.0.1';
+  return isLoopbackHost(host) || host === BASE_DOMAIN || host === `admin.${BASE_DOMAIN}`;
 }
 
 export function getCurrentTenantSlug(): string | null {

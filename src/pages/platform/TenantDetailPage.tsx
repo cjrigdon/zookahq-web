@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
-import { api } from '../../api/client';
+import { api, getBaseDomain } from '../../api/client';
 
 type ModuleRow = { code: string; name: string; enabled: boolean };
 
@@ -56,7 +56,7 @@ export function TenantDetailPage() {
       </Link>
       <h2 className="mt-3 font-[family-name:var(--font-display)] text-2xl">{tenant.name}</h2>
       <p className="text-sm text-slate-600">
-        {tenant.slug}.localhost · status {tenant.status}
+        {tenant.slug}.{getBaseDomain()} · status {tenant.status}
       </p>
 
       <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white">
