@@ -160,10 +160,13 @@ export function AppShell() {
     <div className="flex min-h-full">
       <aside className="flex w-60 flex-col bg-primary text-white">
         <div className="border-b border-white/10 px-5 py-6">
-          <div className="font-[family-name:var(--font-display)] text-2xl tracking-tight">
-            ZookaHQ
+          <div className="flex items-center gap-2.5">
+            <img src="/zooka-logo.png" alt="" className="h-9 w-9 shrink-0" />
+            <div className="font-[family-name:var(--font-display)] text-2xl tracking-tight">
+              ZookaHQ
+            </div>
           </div>
-          <p className="mt-1 text-xs text-white/70">
+          <p className="mt-2 text-xs text-white/70">
             {platform ? 'Platform Admin' : tenant?.name ?? 'Tenant'}
           </p>
         </div>

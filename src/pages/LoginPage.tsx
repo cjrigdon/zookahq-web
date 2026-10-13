@@ -36,8 +36,11 @@ export function LoginPage() {
         className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
       >
         <div className="mb-8">
-          <div className="font-[family-name:var(--font-display)] text-3xl text-primary">
-            ZookaHQ
+          <div className="flex items-center gap-3">
+            <img src="/zooka-logo.png" alt="" className="h-10 w-10 shrink-0" />
+            <div className="font-[family-name:var(--font-display)] text-3xl text-primary">
+              ZookaHQ
+            </div>
           </div>
           <p className="mt-2 text-sm text-slate-600">
             {isPlatformHost()
