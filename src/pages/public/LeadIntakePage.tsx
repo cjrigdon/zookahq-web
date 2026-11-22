@@ -14,7 +14,8 @@ type IntakeConfig = {
 
 type IntakeForm = {
   account_name: string;
-  contact_name: string;
+  contact_first_name: string;
+  contact_last_name: string;
   contact_email: string;
   contact_title: string;
   event_date: string;
@@ -27,7 +28,8 @@ type IntakeForm = {
 
 const emptyForm: IntakeForm = {
   account_name: '',
-  contact_name: '',
+  contact_first_name: '',
+  contact_last_name: '',
   contact_email: '',
   contact_title: '',
   event_date: '',
@@ -63,7 +65,8 @@ export function LeadIntakePage() {
         method: 'POST',
         body: JSON.stringify({
           account_name: form.account_name,
-          contact_name: form.contact_name,
+          contact_first_name: form.contact_first_name,
+          contact_last_name: form.contact_last_name,
           contact_email: form.contact_email,
           contact_title: form.contact_title || undefined,
           event_date: form.event_date,
@@ -152,15 +155,28 @@ export function LeadIntakePage() {
           />
         </label>
 
-        <label className="block text-sm">
-          <span className="mb-1 block text-slate-600">Contact name</span>
-          <input
-            required
-            className={inputClass}
-            value={form.contact_name}
-            onChange={(e) => setForm({ ...form, contact_name: e.target.value })}
-          />
-        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm">
+            <span className="mb-1 block text-slate-600">First name</span>
+            <input
+              required
+              autoComplete="given-name"
+              className={inputClass}
+              value={form.contact_first_name}
+              onChange={(e) => setForm({ ...form, contact_first_name: e.target.value })}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-slate-600">Last name</span>
+            <input
+              required
+              autoComplete="family-name"
+              className={inputClass}
+              value={form.contact_last_name}
+              onChange={(e) => setForm({ ...form, contact_last_name: e.target.value })}
+            />
+          </label>
+        </div>
 
         <label className="block text-sm">
           <span className="mb-1 block text-slate-600">Contact title</span>
@@ -199,6 +215,7 @@ export function LeadIntakePage() {
             <span className="mb-1 block text-slate-600">Load in start</span>
             <DateTimePicker
               value={form.load_in_at}
+              defaultDate={form.event_date || undefined}
               onChange={(next) => setForm({ ...form, load_in_at: next })}
             />
           </label>
@@ -206,6 +223,7 @@ export function LeadIntakePage() {
             <span className="mb-1 block text-slate-600">Event start</span>
             <DateTimePicker
               value={form.event_starts_at}
+              defaultDate={form.event_date || undefined}
               onChange={(next) => setForm({ ...form, event_starts_at: next })}
             />
           </label>
@@ -213,6 +231,7 @@ export function LeadIntakePage() {
             <span className="mb-1 block text-slate-600">Event end</span>
             <DateTimePicker
               value={form.event_ends_at}
+              defaultDate={form.event_date || undefined}
               min={form.event_starts_at || undefined}
               onChange={(next) => setForm({ ...form, event_ends_at: next })}
             />
@@ -221,6 +240,7 @@ export function LeadIntakePage() {
             <span className="mb-1 block text-slate-600">Load out complete</span>
             <DateTimePicker
               value={form.load_out_at}
+              defaultDate={form.event_date || undefined}
               onChange={(next) => setForm({ ...form, load_out_at: next })}
             />
           </label>

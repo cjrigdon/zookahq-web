@@ -36,8 +36,18 @@ export function SalesGoalsPage() {
       columns={[
         { key: 'name', label: 'Name' },
         { key: 'period_type', label: 'Period' },
-        { key: 'period_start', label: 'Start' },
-        { key: 'period_end', label: 'End' },
+        {
+          key: 'period_start',
+          label: 'Start',
+          render: (row: any) =>
+            row.period_start ? String(row.period_start).slice(0, 10) : '—',
+        },
+        {
+          key: 'period_end',
+          label: 'End',
+          render: (row: any) =>
+            row.period_end ? String(row.period_end).slice(0, 10) : '—',
+        },
         {
           key: 'target_amount',
           label: 'Target',

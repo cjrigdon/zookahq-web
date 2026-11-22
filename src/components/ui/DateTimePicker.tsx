@@ -44,6 +44,33 @@ export function parseDateTimeValue(value: string): Date | null {
   return date;
 }
 
+/** Parse YYYY-MM-DD or datetime; date-only keeps the caller's wall-clock time. */
+function parseDefaultDate(value: string | undefined, timeFrom: Date): Date | null {
+  if (!value) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(
+      year,
+      month - 1,
+      day,
+      timeFrom.getHours(),
+      snapMinutes(timeFrom.getMinutes()),
+      0,
+      0,
+    );
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  return parseDateTimeValue(value);
+}
+
+function resolvePickerDate(value: string, defaultDate?: string): Date {
+  return (
+    parseDateTimeValue(value) ??
+    parseDefaultDate(defaultDate, new Date()) ??
+    new Date()
+  );
+}
+
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
@@ -98,6 +125,8 @@ type DateTimePickerProps = {
   value: string;
   onChange: (value: string) => void;
   min?: string;
+  /** When value is empty, open the calendar on this date (YYYY-MM-DD or datetime). */
+  defaultDate?: string;
   required?: boolean;
   className?: string;
 };
@@ -107,6 +136,7 @@ export function DateTimePicker({
   value,
   onChange,
   min,
+  defaultDate,
   required,
   className,
 }: DateTimePickerProps) {
@@ -118,18 +148,21 @@ export function DateTimePicker({
     left: 0,
     visibility: 'hidden',
   });
-  const selected = useMemo(() => parseDateTimeValue(value) ?? new Date(), [value]);
+  const selected = useMemo(
+    () => resolvePickerDate(value, defaultDate),
+    [value, defaultDate],
+  );
   const [cursor, setCursor] = useState(() => startOfMonth(selected));
   const [draft, setDraft] = useState(() => selected);
   const minDate = useMemo(() => parseDateTimeValue(min ?? ''), [min]);
 
   useEffect(() => {
     if (!open) return;
-    const next = parseDateTimeValue(value) ?? new Date();
+    const next = resolvePickerDate(value, defaultDate);
     next.setMinutes(snapMinutes(next.getMinutes()), 0, 0);
     setDraft(next);
     setCursor(startOfMonth(next));
-  }, [open, value]);
+  }, [open, value, defaultDate]);
 
   useEffect(() => {
     if (!open) return;

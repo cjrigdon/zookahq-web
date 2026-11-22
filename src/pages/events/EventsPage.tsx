@@ -13,11 +13,28 @@ type EventTypeOption = {
   text_color: string;
 };
 
+type AccountOption = {
+  id: number;
+  name: string;
+  contacts?: Array<{ id: number; first_name?: string; last_name?: string }>;
+};
+
+function contactLabel(contact: { first_name?: string; last_name?: string }) {
+  return `${contact.first_name ?? ''} ${contact.last_name ?? ''}`.trim() || 'Unnamed contact';
+}
+
 export function EventsPage() {
   const { data: typesData } = useQuery({
     queryKey: ['event-types'],
     queryFn: () => api<{ data: EventTypeOption[] }>('/events/event-types'),
   });
+
+  const { data: accountsData } = useQuery({
+    queryKey: ['booking-accounts'],
+    queryFn: () => api<{ data: { data: AccountOption[] } }>('/booking/accounts'),
+  });
+
+  const accounts = accountsData?.data?.data ?? [];
 
   const typeOptions = useMemo(
     () =>
@@ -26,6 +43,15 @@ export function EventsPage() {
         label: `${type.name} (${type.code})`,
       })),
     [typesData?.data],
+  );
+
+  const accountOptions = useMemo(
+    () =>
+      accounts.map((account) => ({
+        value: String(account.id),
+        label: account.name,
+      })),
+    [accounts],
   );
 
   return (
@@ -38,6 +64,8 @@ export function EventsPage() {
         name: '',
         event_type_id: '',
         status: 'confirmed',
+        account_id: '',
+        contact_id: '',
         value: '0',
         starts_at: '',
         ends_at: '',
@@ -53,6 +81,24 @@ export function EventsPage() {
           options: typeOptions,
         },
         { name: 'status', label: 'Status', options: EVENT_STATUSES },
+        {
+          name: 'account_id',
+          label: 'Account',
+          options: accountOptions,
+          clears: ['contact_id'],
+        },
+        {
+          name: 'contact_id',
+          label: 'Contact',
+          options: (form) => {
+            const account = accounts.find((row) => String(row.id) === form.account_id);
+            return (account?.contacts ?? []).map((contact) => ({
+              value: String(contact.id),
+              label: contactLabel(contact),
+            }));
+          },
+          disabled: (form) => !form.account_id,
+        },
         { name: 'value', label: 'Value', type: 'number' },
         { name: 'starts_at', label: 'Starts at', type: 'datetime-local', required: true },
         { name: 'ends_at', label: 'Ends at', type: 'datetime-local', required: true },
@@ -62,6 +108,8 @@ export function EventsPage() {
       transformPayload={(form) => ({
         ...form,
         event_type_id: form.event_type_id ? Number(form.event_type_id) : null,
+        account_id: form.account_id ? Number(form.account_id) : null,
+        contact_id: form.contact_id ? Number(form.contact_id) : null,
         value: Number(form.value || 0),
         expected_attendance: form.expected_attendance
           ? Number(form.expected_attendance)

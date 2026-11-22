@@ -108,11 +108,17 @@ function buildTimeline(record: any): TimelineItem[] {
   });
 }
 
+function contactLabel(contact: { first_name?: string; last_name?: string }) {
+  return `${contact.first_name ?? ''} ${contact.last_name ?? ''}`.trim() || 'Unnamed contact';
+}
+
 function recordToForm(record: any): Record<string, string> {
   return {
     name: String(record.name ?? ''),
     status: String(record.status ?? ''),
     event_type_id: record.event_type_id != null ? String(record.event_type_id) : '',
+    account_id: record.account_id != null ? String(record.account_id) : '',
+    contact_id: record.contact_id != null ? String(record.contact_id) : '',
     purpose: String(record.purpose ?? ''),
     description: String(record.description ?? ''),
     value: String(record.value ?? '0'),
@@ -161,8 +167,23 @@ export function EventDetailPage() {
       }>('/events/event-types'),
   });
 
+  const { data: accountsData } = useQuery({
+    queryKey: ['booking-accounts'],
+    queryFn: () =>
+      api<{
+        data: {
+          data: Array<{
+            id: number;
+            name: string;
+            contacts?: Array<{ id: number; first_name?: string; last_name?: string }>;
+          }>;
+        };
+      }>('/booking/accounts'),
+  });
+
   const record = data?.data;
   const eventTypes = typesData?.data ?? [];
+  const accounts = accountsData?.data?.data ?? [];
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -211,6 +232,8 @@ export function EventDetailPage() {
         body: JSON.stringify({
           ...form,
           event_type_id: form.event_type_id ? Number(form.event_type_id) : null,
+          account_id: form.account_id ? Number(form.account_id) : null,
+          contact_id: form.contact_id ? Number(form.contact_id) : null,
           value: Number(form.value || 0),
           client_venue_budget: form.client_venue_budget
             ? Number(form.client_venue_budget)
@@ -276,7 +299,13 @@ export function EventDetailPage() {
   }
 
   function setField(name: string, value: string) {
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'account_id' && value !== prev.account_id) {
+        next.contact_id = '';
+      }
+      return next;
+    });
   }
 
   if (isLoading) return <p className="text-slate-500">Loading…</p>;
@@ -301,6 +330,15 @@ export function EventDetailPage() {
   const changes = record.changes ?? [];
   const notes = record.notes ?? [];
   const accountContacts = record.account?.contacts ?? [];
+  const accountOptions = [
+    ...accounts,
+    ...(record.account && !accounts.some((account) => account.id === record.account.id)
+      ? [record.account]
+      : []),
+  ];
+  const selectedAccount =
+    accountOptions.find((account) => String(account.id) === form.account_id) ?? null;
+  const formAccountContacts = selectedAccount?.contacts ?? [];
 
   return (
     <DetailShell
@@ -442,6 +480,43 @@ export function EventDetailPage() {
                     Alcohol will be served
                   </label>
                 </Field>
+                <Field label="Account">
+                  <select
+                    className={selectClassName}
+                    value={form.account_id}
+                    onChange={(e) => setField('account_id', e.target.value)}
+                  >
+                    <option value="">Select account…</option>
+                    {accountOptions.map((account) => (
+                      <option key={account.id} value={account.id}>
+                        {account.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Contact">
+                  <select
+                    className={selectClassName}
+                    value={form.contact_id}
+                    onChange={(e) => setField('contact_id', e.target.value)}
+                    disabled={!form.account_id}
+                  >
+                    <option value="">
+                      {form.account_id ? 'Select contact…' : 'Select an account first'}
+                    </option>
+                    {formAccountContacts.map((contact: any) => (
+                      <option key={contact.id} value={contact.id}>
+                        {contactLabel(contact)}
+                      </option>
+                    ))}
+                    {form.contact_id &&
+                    record.contact &&
+                    String(record.contact.id) === form.contact_id &&
+                    !formAccountContacts.some((contact: any) => String(contact.id) === form.contact_id) ? (
+                      <option value={record.contact.id}>{contactLabel(record.contact)}</option>
+                    ) : null}
+                  </select>
+                </Field>
               </FieldGrid>
             ) : (
               <dl className="grid gap-4 sm:grid-cols-2">
@@ -496,9 +571,16 @@ export function EventDetailPage() {
                 <ReadField
                   label="Contact"
                   value={
-                    record.contact
-                      ? `${record.contact.first_name} ${record.contact.last_name}`
-                      : record.contact_id
+                    record.contact ? (
+                      <Link
+                        to={`/booking/contacts/${record.contact.id}`}
+                        className="font-medium text-slate-900 no-underline"
+                      >
+                        {contactLabel(record.contact)}
+                      </Link>
+                    ) : (
+                      record.contact_id
+                    )
                   }
                 />
               </dl>
@@ -512,13 +594,26 @@ export function EventDetailPage() {
                   <DateTimePicker value={form.starts_at} onChange={(next) => setField('starts_at', next)} required />
                 </Field>
                 <Field label="Ends at">
-                  <DateTimePicker value={form.ends_at} onChange={(next) => setField('ends_at', next)} required />
+                  <DateTimePicker
+                    value={form.ends_at}
+                    defaultDate={form.starts_at || undefined}
+                    onChange={(next) => setField('ends_at', next)}
+                    required
+                  />
                 </Field>
                 <Field label="Load in">
-                  <DateTimePicker value={form.load_in_at} onChange={(next) => setField('load_in_at', next)} />
+                  <DateTimePicker
+                    value={form.load_in_at}
+                    defaultDate={form.starts_at || undefined}
+                    onChange={(next) => setField('load_in_at', next)}
+                  />
                 </Field>
                 <Field label="Load out">
-                  <DateTimePicker value={form.load_out_at} onChange={(next) => setField('load_out_at', next)} />
+                  <DateTimePicker
+                    value={form.load_out_at}
+                    defaultDate={form.starts_at || form.ends_at || undefined}
+                    onChange={(next) => setField('load_out_at', next)}
+                  />
                 </Field>
               </FieldGrid>
             ) : (

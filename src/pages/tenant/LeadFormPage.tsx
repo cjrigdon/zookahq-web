@@ -124,7 +124,7 @@ export function LeadFormPage() {
           <p className="font-medium text-slate-700">Fields collected</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Company name</li>
-            <li>Contact name and title</li>
+            <li>Contact first name, last name, and title</li>
             <li>Contact email</li>
             <li>Event date</li>
             <li>Event timeline: load in start, event start, event end, load out complete</li>

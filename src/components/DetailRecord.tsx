@@ -259,6 +259,7 @@ export function DetailRecord({
                   <DateTimePicker
                     required={field.required}
                     value={form[field.name] ?? ''}
+                    defaultDate={form.event_date || form.starts_at || undefined}
                     onChange={(next) => setForm({ ...form, [field.name]: next })}
                     className={field.readOnly ? 'pointer-events-none opacity-60' : undefined}
                   />
@@ -340,6 +341,9 @@ function formatDisplay(value: unknown, field: DetailField) {
   }
   if (field.type === 'datetime-local') {
     return formatDateTime(String(value), { wallClock: true });
+  }
+  if (field.type === 'date') {
+    return String(value).slice(0, 10);
   }
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
   return String(value);

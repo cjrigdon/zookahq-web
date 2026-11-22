@@ -8,20 +8,27 @@ import { DateTimePicker } from './ui/DateTimePicker';
 
 type Column<T> = { key: string; label: string; render?: (row: T) => ReactNode };
 
+type FieldOption = { value: string; label: string };
+
+type FormField = {
+  name: string;
+  label: string;
+  type?: string;
+  required?: boolean;
+  options?: FieldOption[] | ((form: Record<string, string>) => FieldOption[]);
+  /** When this field changes, clear these sibling fields (e.g. contact when account changes). */
+  clears?: string[];
+  disabled?: boolean | ((form: Record<string, string>) => boolean);
+  addressKeys?: AddressKeys;
+};
+
 type Props<T extends { id: number }> = {
   title: string;
   description: string;
   queryKey: string;
   endpoint: string;
   columns: Column<T>[];
-  fields: Array<{
-    name: string;
-    label: string;
-    type?: string;
-    required?: boolean;
-    options?: Array<{ value: string; label: string }>;
-    addressKeys?: AddressKeys;
-  }>;
+  fields: FormField[];
   initialForm: Record<string, string>;
   actions?: (row: T, helpers: { refresh: () => void }) => ReactNode;
   transformPayload?: (form: Record<string, string>) => Record<string, unknown>;
@@ -167,26 +174,39 @@ export function ResourcePage<T extends { id: number }>({
           >
             <h3 className="mb-4 text-lg font-semibold">Create {title.slice(0, -1) || title}</h3>
             <div className="space-y-3">
-              {fields.map((field) =>
-                field.type === 'address' && field.addressKeys ? (
+              {fields.map((field) => {
+                const patchForm = (patch: Record<string, string>) => {
+                  const next = { ...form, ...patch };
+                  for (const key of field.clears ?? []) {
+                    if (!(key in patch)) next[key] = '';
+                  }
+                  setForm(next);
+                };
+                const options =
+                  typeof field.options === 'function' ? field.options(form) : field.options;
+                const disabled =
+                  typeof field.disabled === 'function' ? field.disabled(form) : field.disabled;
+
+                return field.type === 'address' && field.addressKeys ? (
                   <AddressFields
                     key={field.name}
                     values={form}
                     keys={field.addressKeys}
-                    onChange={(patch) => setForm({ ...form, ...patch })}
+                    onChange={(patch) => patchForm(patch)}
                   />
                 ) : (
                 <label key={field.name} className="block text-sm">
                   <span className="mb-1 block text-slate-600">{field.label}</span>
-                  {field.options ? (
+                  {options ? (
                     <select
                       className="zhq-select zhq-select--block"
                       value={form[field.name] ?? ''}
-                      onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
+                      onChange={(e) => patchForm({ [field.name]: e.target.value })}
                       required={field.required}
+                      disabled={disabled}
                     >
                       <option value="">Select…</option>
-                      {field.options.map((opt) => (
+                      {options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {opt.label}
                         </option>
@@ -196,20 +216,22 @@ export function ResourcePage<T extends { id: number }>({
                     <DateTimePicker
                       required={field.required}
                       value={form[field.name] ?? ''}
-                      onChange={(next) => setForm({ ...form, [field.name]: next })}
+                      defaultDate={form.event_date || form.starts_at || undefined}
+                      onChange={(next) => patchForm({ [field.name]: next })}
                     />
                   ) : (
                     <input
                       className="w-full rounded-md border border-slate-300 px-3 py-2"
                       type={field.type ?? 'text'}
                       value={form[field.name] ?? ''}
-                      onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
+                      onChange={(e) => patchForm({ [field.name]: e.target.value })}
                       required={field.required}
+                      disabled={disabled}
                     />
                   )}
                 </label>
-                ),
-              )}
+                );
+              })}
             </div>
             {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
             <div className="mt-5 flex justify-end gap-2">
