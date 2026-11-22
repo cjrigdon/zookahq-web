@@ -64,7 +64,7 @@ export function ContactDetailPage() {
           <label className="block text-sm">
             <span className="mb-1 block text-slate-600">Account</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
+              className="zhq-select zhq-select--block"
               value={form.account_id}
               onChange={(e) => setForm({ ...form, account_id: e.target.value })}
               required
@@ -116,8 +116,8 @@ export function ContactDetailPage() {
   return (
     <DetailRecord
       title={(r) => `${r.first_name} ${r.last_name}`}
-      backTo={prefAccount ? `/booking/accounts/${prefAccount}` : '/booking/accounts'}
-      backLabel="Back"
+      backTo="/booking/contacts"
+      backLabel="Back to contacts"
       queryKey={['booking-contact', id ?? '']}
       endpoint={`/booking/contacts/${id}`}
       fields={[

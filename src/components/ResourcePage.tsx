@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
+import { AddressFields, type AddressKeys } from './AddressFields';
+import { ActionButton } from './ui/ActionButton';
+import { DateTimePicker } from './ui/DateTimePicker';
 
 type Column<T> = { key: string; label: string; render?: (row: T) => ReactNode };
 
@@ -17,6 +20,7 @@ type Props<T extends { id: number }> = {
     type?: string;
     required?: boolean;
     options?: Array<{ value: string; label: string }>;
+    addressKeys?: AddressKeys;
   }>;
   initialForm: Record<string, string>;
   actions?: (row: T, helpers: { refresh: () => void }) => ReactNode;
@@ -84,13 +88,7 @@ export function ResourcePage<T extends { id: number }>({
           <p className="text-sm text-slate-600">{description}</p>
         </div>
         {!disableCreate && (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-text hover:bg-accent-dark"
-          >
-            New
-          </button>
+          <ActionButton onClick={() => setOpen(true)}>New</ActionButton>
         )}
       </div>
 
@@ -103,20 +101,20 @@ export function ResourcePage<T extends { id: number }>({
                   {col.label}
                 </th>
               ))}
-              {(actions || detailTo) && <th className="px-4 py-3" />}
+              {actions ? <th className="px-4 py-3" /> : null}
             </tr>
           </thead>
           <tbody>
             {isLoading && (
               <tr>
-                <td className="px-4 py-6 text-slate-500" colSpan={columns.length + 1}>
+                <td className="px-4 py-6 text-slate-500" colSpan={columns.length + (actions ? 1 : 0)}>
                   Loading…
                 </td>
               </tr>
             )}
             {!isLoading && rows.length === 0 && (
               <tr>
-                <td className="px-4 py-6 text-slate-500" colSpan={columns.length + 1}>
+                <td className="px-4 py-6 text-slate-500" colSpan={columns.length + (actions ? 1 : 0)}>
                   No records yet.
                 </td>
               </tr>
@@ -139,30 +137,21 @@ export function ResourcePage<T extends { id: number }>({
                       {col.render ? (
                         col.render(row)
                       ) : href && col === columns[0] ? (
-                        <Link
-                          to={href}
-                          className="font-medium text-primary hover:underline"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <span className="font-medium text-slate-900">
                           {String((row as unknown as Record<string, unknown>)[col.key] ?? '—')}
-                        </Link>
+                        </span>
                       ) : (
                         String((row as unknown as Record<string, unknown>)[col.key] ?? '—')
                       )}
                     </td>
                   ))}
-                  {(actions || detailTo) && (
+                  {actions ? (
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      {actions?.(row, {
+                      {actions(row, {
                         refresh: () => void qc.invalidateQueries({ queryKey: [queryKey] }),
                       })}
-                      {detailTo && !actions && (
-                        <Link to={href!} className="text-primary hover:underline">
-                          Open
-                        </Link>
-                      )}
                     </td>
-                  )}
+                  ) : null}
                 </tr>
               );
             })}
@@ -178,12 +167,20 @@ export function ResourcePage<T extends { id: number }>({
           >
             <h3 className="mb-4 text-lg font-semibold">Create {title.slice(0, -1) || title}</h3>
             <div className="space-y-3">
-              {fields.map((field) => (
+              {fields.map((field) =>
+                field.type === 'address' && field.addressKeys ? (
+                  <AddressFields
+                    key={field.name}
+                    values={form}
+                    keys={field.addressKeys}
+                    onChange={(patch) => setForm({ ...form, ...patch })}
+                  />
+                ) : (
                 <label key={field.name} className="block text-sm">
                   <span className="mb-1 block text-slate-600">{field.label}</span>
                   {field.options ? (
                     <select
-                      className="w-full rounded-md border border-slate-300 px-3 py-2"
+                      className="zhq-select zhq-select--block"
                       value={form[field.name] ?? ''}
                       onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
                       required={field.required}
@@ -195,6 +192,12 @@ export function ResourcePage<T extends { id: number }>({
                         </option>
                       ))}
                     </select>
+                  ) : field.type === 'datetime-local' ? (
+                    <DateTimePicker
+                      required={field.required}
+                      value={form[field.name] ?? ''}
+                      onChange={(next) => setForm({ ...form, [field.name]: next })}
+                    />
                   ) : (
                     <input
                       className="w-full rounded-md border border-slate-300 px-3 py-2"
@@ -205,16 +208,15 @@ export function ResourcePage<T extends { id: number }>({
                     />
                   )}
                 </label>
-              ))}
+                ),
+              )}
             </div>
             {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
             <div className="mt-5 flex justify-end gap-2">
-              <button type="button" className="px-3 py-2 text-sm" onClick={() => setOpen(false)}>
+              <ActionButton variant="ghost" onClick={() => setOpen(false)}>
                 Cancel
-              </button>
-              <button type="submit" className="rounded-md bg-accent px-4 py-2 text-sm font-medium">
-                Save
-              </button>
+              </ActionButton>
+              <ActionButton type="submit">Save</ActionButton>
             </div>
           </form>
         </div>

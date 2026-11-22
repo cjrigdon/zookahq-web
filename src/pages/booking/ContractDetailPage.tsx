@@ -36,12 +36,12 @@ export function ContractDetailPage() {
       })}
       related={(record) => [
         {
-          title: 'Opportunity',
-          rows: record.opportunity ? [record.opportunity] : [],
-          getRowLink: (row) => `/booking/opportunities/${row.id}`,
+          title: 'Event',
+          rows: record.event ? [record.event] : [],
+          getRowLink: (row) => `/events/events/${row.id}`,
           columns: [
             { key: 'name', label: 'Name' },
-            { key: 'stage', label: 'Stage' },
+            { key: 'status', label: 'Status' },
           ],
         },
         {

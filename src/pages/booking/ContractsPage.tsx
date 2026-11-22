@@ -1,5 +1,6 @@
 import { api } from '../../api/client';
 import { ResourcePage } from '../../components/ResourcePage';
+import { ActionButton } from '../../components/ui/ActionButton';
 
 export function ContractsPage() {
   return (
@@ -33,17 +34,16 @@ export function ContractsPage() {
             }),
         },
         {
-          key: 'opportunity',
-          label: 'Opportunity',
-          render: (row: any) => row.opportunity?.name ?? '—',
+          key: 'event',
+          label: 'Event',
+          render: (row: any) => row.event?.name ?? '—',
         },
       ]}
       detailTo={(row) => `/booking/contracts/${row.id}`}
       actions={(row, { refresh }) =>
         row.status !== 'signed' ? (
-          <button
-            type="button"
-            className="text-primary hover:underline"
+          <ActionButton
+            size="sm"
             onClick={() => {
               void api(`/booking/contracts/${row.id}`, {
                 method: 'PUT',
@@ -52,7 +52,7 @@ export function ContractsPage() {
             }}
           >
             Mark signed
-          </button>
+          </ActionButton>
         ) : null
       }
     />

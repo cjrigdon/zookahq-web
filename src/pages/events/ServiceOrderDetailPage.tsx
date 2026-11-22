@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { EntityChecklists } from '../../components/checklists/EntityChecklists';
 import { DetailRecord } from '../../components/DetailRecord';
 
 export function ServiceOrderDetailPage() {
@@ -52,6 +53,7 @@ export function ServiceOrderDetailPage() {
           ],
         },
       ]}
+      extra={(record) => <EntityChecklists type="service_order" recordId={record.id} />}
     />
   );
 }

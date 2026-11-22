@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client';
+import { formatDateTime } from '../../lib/formatDateTime';
 
 export function ChangesPage() {
   const { data, isLoading } = useQuery({
@@ -44,7 +45,7 @@ export function ChangesPage() {
             {rows.map((row) => (
               <tr key={row.id} className="border-t border-slate-100 hover:bg-support/40">
                 <td className="px-4 py-3 text-xs text-slate-500">
-                  {new Date(row.created_at).toLocaleString()}
+                  {formatDateTime(row.created_at, { seconds: true })}
                 </td>
                 <td className="px-4 py-3">{row.event?.name ?? row.event_id}</td>
                 <td className="px-4 py-3">

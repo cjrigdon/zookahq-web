@@ -37,7 +37,7 @@ export function LoginPage() {
       >
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            <img src="/zooka-logo.png" alt="" className="h-10 w-10 shrink-0" />
+            <img src="/zooka-logo.png" alt="" width={50} height={50} className="h-10 w-10 shrink-0" />
             <div className="font-[family-name:var(--font-display)] text-3xl text-primary">
               ZookaHQ
             </div>

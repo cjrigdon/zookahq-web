@@ -114,7 +114,7 @@ export function ApPaymentsPage() {
             <label className="mb-3 block text-sm">
               <span className="mb-1 block text-slate-600">Bill</span>
               <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2"
+                className="zhq-select zhq-select--block"
                 value={form.ap_bill_id}
                 onChange={(e) => setForm({ ...form, ap_bill_id: e.target.value })}
                 required
@@ -143,7 +143,7 @@ export function ApPaymentsPage() {
             <label className="mb-3 block text-sm">
               <span className="mb-1 block text-slate-600">Method</span>
               <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2"
+                className="zhq-select zhq-select--block"
                 value={form.method}
                 onChange={(e) => setForm({ ...form, method: e.target.value })}
               >

@@ -1,4 +1,5 @@
 import { ResourcePage } from '../../components/ResourcePage';
+import { formatDateTime } from '../../lib/formatDateTime';
 
 export function FunctionsPage() {
   return (
@@ -63,7 +64,7 @@ export function FunctionsPage() {
         {
           key: 'starts_at',
           label: 'Starts',
-          render: (row: any) => new Date(row.starts_at).toLocaleString(),
+          render: (row: any) => formatDateTime(row.starts_at, { wallClock: true }),
         },
       ]}
       detailTo={(row) => `/events/functions/${row.id}`}

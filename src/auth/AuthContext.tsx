@@ -14,6 +14,7 @@ import {
   loginRequest,
   setTenantToken,
 } from '../api/client';
+import { applyTheme, resetTheme } from '../lib/themes';
 
 type AuthUser = {
   id: number;
@@ -27,7 +28,7 @@ type AuthState = {
   permissions: string[];
   roles: string[];
   modules: string[];
-  tenant: { id: string; name: string; slug: string } | null;
+  tenant: { id: string; name: string; slug: string; theme?: string } | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -54,6 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRoles(payload.roles ?? []);
     setModules(payload.modules ?? []);
     setTenant(payload.tenant ?? null);
+    if (payload.type === 'tenant') {
+      applyTheme(payload.tenant?.theme);
+    } else {
+      resetTheme();
+    }
   }, []);
 
   const refresh = useCallback(async () => {
@@ -73,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles([]);
       setModules([]);
       setTenant(null);
+      resetTheme();
       if (!isPlatformHost()) setTenantToken(null);
     } finally {
       setLoading(false);
@@ -110,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles([]);
       setModules([]);
       setTenant(null);
+      resetTheme();
     }
   }, []);
 

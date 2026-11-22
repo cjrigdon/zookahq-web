@@ -224,7 +224,7 @@ export function ReportBuilderPage() {
         <label className="block text-sm">
           <span className="mb-1 block text-slate-600">Dataset</span>
           <select
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="zhq-select zhq-select--block"
             value={dataset}
             onChange={(e) => applyDataset(e.target.value)}
           >
@@ -238,7 +238,7 @@ export function ReportBuilderPage() {
         <label className="block text-sm">
           <span className="mb-1 block text-slate-600">Chart type</span>
           <select
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="zhq-select zhq-select--block"
             value={chartType}
             onChange={(e) => setChartType(e.target.value)}
           >
@@ -277,7 +277,7 @@ export function ReportBuilderPage() {
         <label className="block text-sm">
           <span className="mb-1 block text-slate-600">Group by</span>
           <select
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="zhq-select zhq-select--block"
             value={groupBy}
             onChange={(e) => setGroupBy(e.target.value)}
           >
@@ -293,7 +293,7 @@ export function ReportBuilderPage() {
           <label className="block text-sm">
             <span className="mb-1 block text-slate-600">Sort</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
+              className="zhq-select zhq-select--block"
               value={sortColumn}
               onChange={(e) => setSortColumn(e.target.value)}
             >
@@ -307,7 +307,7 @@ export function ReportBuilderPage() {
           <label className="block text-sm">
             <span className="mb-1 block text-slate-600">Direction</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
+              className="zhq-select zhq-select--block"
               value={sortDirection}
               onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
             >
@@ -337,7 +337,7 @@ export function ReportBuilderPage() {
             {filters.map((filter, index) => (
               <div key={index} className="grid gap-2 md:grid-cols-4">
                 <select
-                  className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="zhq-select text-sm"
                   value={filter.field}
                   onChange={(e) =>
                     setFilters((prev) =>
@@ -352,7 +352,7 @@ export function ReportBuilderPage() {
                   ))}
                 </select>
                 <select
-                  className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="zhq-select text-sm"
                   value={filter.op}
                   onChange={(e) =>
                     setFilters((prev) =>

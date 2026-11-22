@@ -9,13 +9,20 @@ import { ModulesPage } from './pages/platform/ModulesPage';
 import { DashboardPage } from './pages/tenant/DashboardPage';
 import { UsersPage } from './pages/tenant/UsersPage';
 import { SettingsPage } from './pages/tenant/SettingsPage';
+import { ChecklistsPage } from './pages/tenant/ChecklistsPage';
+import { ChecklistDetailPage } from './pages/tenant/ChecklistDetailPage';
+import { SpacesPage } from './pages/tenant/SpacesPage';
+import { SpaceDetailPage } from './pages/tenant/SpaceDetailPage';
+import { SpaceAttributesPage } from './pages/tenant/SpaceAttributesPage';
+import { SpaceStylesPage } from './pages/tenant/SpaceStylesPage';
+import { EventTypesPage } from './pages/tenant/EventTypesPage';
+import { LeadFormPage } from './pages/tenant/LeadFormPage';
+import { BookingSearchPage } from './pages/booking/BookingSearchPage';
 import { LeadsPage } from './pages/booking/LeadsPage';
 import { LeadDetailPage } from './pages/booking/LeadDetailPage';
 import { AccountsPage } from './pages/booking/AccountsPage';
 import { AccountDetailPage } from './pages/booking/AccountDetailPage';
 import { ContactDetailPage } from './pages/booking/ContactDetailPage';
-import { OpportunitiesPage } from './pages/booking/OpportunitiesPage';
-import { OpportunityDetailPage } from './pages/booking/OpportunityDetailPage';
 import { ProposalsPage } from './pages/booking/ProposalsPage';
 import { ProposalDetailPage } from './pages/booking/ProposalDetailPage';
 import { ContractsPage } from './pages/booking/ContractsPage';
@@ -49,6 +56,8 @@ import { ReportingDashboardPage } from './pages/reporting/ReportingDashboardPage
 import { ReportLibraryPage } from './pages/reporting/ReportLibraryPage';
 import { ReportBuilderPage } from './pages/reporting/ReportBuilderPage';
 import { InvoicePortalPage } from './pages/portal/InvoicePortalPage';
+import { LeadIntakePage } from './pages/public/LeadIntakePage';
+import { ProfilePage } from './pages/ProfilePage';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -76,6 +85,7 @@ function PlatformRoutes() {
         <Route path="tenants" element={<TenantsPage />} />
         <Route path="tenants/:id" element={<TenantDetailPage />} />
         <Route path="modules" element={<ModulesPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -87,6 +97,7 @@ function TenantRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/portal/invoices/:token" element={<InvoicePortalPage />} />
+      <Route path="/embed/leads" element={<LeadIntakePage />} />
       <Route
         element={
           <Protected>
@@ -95,14 +106,13 @@ function TenantRoutes() {
         }
       >
         <Route index element={<DashboardPage />} />
+        <Route path="booking/search" element={<BookingSearchPage />} />
         <Route path="booking/leads" element={<LeadsPage />} />
         <Route path="booking/leads/:id" element={<LeadDetailPage />} />
         <Route path="booking/accounts" element={<AccountsPage />} />
         <Route path="booking/accounts/:id" element={<AccountDetailPage />} />
         <Route path="booking/contacts/new" element={<ContactDetailPage />} />
         <Route path="booking/contacts/:id" element={<ContactDetailPage />} />
-        <Route path="booking/opportunities" element={<OpportunitiesPage />} />
-        <Route path="booking/opportunities/:id" element={<OpportunityDetailPage />} />
         <Route path="booking/proposals" element={<ProposalsPage />} />
         <Route path="booking/proposals/new" element={<ProposalDetailPage />} />
         <Route path="booking/proposals/:id" element={<ProposalDetailPage />} />
@@ -138,7 +148,16 @@ function TenantRoutes() {
         <Route path="reporting/library/:id" element={<ReportLibraryPage />} />
         <Route path="reporting/builder" element={<ReportBuilderPage />} />
         <Route path="admin/users" element={<UsersPage />} />
+        <Route path="admin/checklists" element={<ChecklistsPage />} />
+        <Route path="admin/checklists/:id" element={<ChecklistDetailPage />} />
+        <Route path="admin/spaces" element={<SpacesPage />} />
+        <Route path="admin/spaces/:id" element={<SpaceDetailPage />} />
+        <Route path="admin/space-attributes" element={<SpaceAttributesPage />} />
+        <Route path="admin/space-styles" element={<SpaceStylesPage />} />
+        <Route path="admin/event-types" element={<EventTypesPage />} />
+        <Route path="admin/lead-form" element={<LeadFormPage />} />
         <Route path="admin/settings" element={<SettingsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

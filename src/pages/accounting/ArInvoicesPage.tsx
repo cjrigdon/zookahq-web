@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 
 export function ArInvoicesPage() {
@@ -106,15 +106,7 @@ export function ArInvoicesPage() {
                 className="cursor-pointer border-t border-slate-100 hover:bg-support/40"
                 onClick={() => navigate(`/accounting/ar-invoices/${row.id}`)}
               >
-                <td className="px-4 py-3 font-medium">
-                  <Link
-                    to={`/accounting/ar-invoices/${row.id}`}
-                    className="text-primary hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {row.invoice_number}
-                  </Link>
-                </td>
+                <td className="px-4 py-3 font-medium text-slate-900">{row.invoice_number}</td>
                 <td className="px-4 py-3">{row.bill_to_name}</td>
                 <td className="px-4 py-3 capitalize">{row.status}</td>
                 <td className="px-4 py-3">
@@ -132,7 +124,7 @@ export function ArInvoicesPage() {
                 <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
-                    className="text-primary hover:underline"
+                    className="text-sm text-primary"
                     onClick={() => {
                       void api<{ data: { path: string; token: string } }>(
                         `/accounting/ar-invoices/${row.id}/portal-link`,

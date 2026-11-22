@@ -49,7 +49,7 @@ export function ReportingDashboardPage() {
         <Stat
           label="Pipeline value"
           value={money(overview?.booking?.pipeline_value ?? 0)}
-          hint={`${overview?.booking?.opportunities_total ?? 0} opportunities`}
+          hint={`${overview?.booking?.opportunities_total ?? 0} in opportunity status`}
         />
         <Stat
           label="Leads"
@@ -70,7 +70,7 @@ export function ReportingDashboardPage() {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <section className="rounded-lg border border-slate-200 bg-white p-5">
-          <h3 className="mb-3 text-sm font-medium">Pipeline by stage</h3>
+          <h3 className="mb-3 text-sm font-medium">Events by status</h3>
           <ul className="space-y-2 text-sm">
             {(overview?.booking?.opportunities_by_stage ?? []).map((row: any) => (
               <li key={row.stage} className="flex justify-between border-b border-slate-50 pb-2">
@@ -81,7 +81,7 @@ export function ReportingDashboardPage() {
               </li>
             ))}
             {!overview?.booking?.opportunities_by_stage?.length && (
-              <li className="text-slate-500">No opportunity data.</li>
+              <li className="text-slate-500">No event data.</li>
             )}
           </ul>
         </section>
@@ -98,9 +98,9 @@ export function ReportingDashboardPage() {
               <li key={report.id}>
                 <Link
                   to={`/reporting/library/${report.id}`}
-                  className="block rounded-md border border-slate-100 px-3 py-2 text-sm hover:bg-support/40"
+                  className="block rounded-md border border-slate-100 px-3 py-2 text-sm no-underline hover:bg-support/40"
                 >
-                  <div className="font-medium text-primary">{report.name}</div>
+                  <div className="font-medium text-slate-900">{report.name}</div>
                   <div className="text-xs text-slate-500">{report.dataset}</div>
                 </Link>
               </li>

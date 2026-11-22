@@ -1,21 +1,22 @@
 import { api } from '../../api/client';
 import { ResourcePage } from '../../components/ResourcePage';
+import { ActionButton } from '../../components/ui/ActionButton';
 
 export function ProposalsPage() {
   return (
     <ResourcePage
       title="Proposals"
-      description="Proposal versions tied to opportunities."
+      description="Proposal versions tied to events."
       queryKey="booking-proposals"
       endpoint="/booking/proposals"
       initialForm={{
-        opportunity_id: '',
+        event_id: '',
         title: '',
         amount: '0',
         status: 'draft',
       }}
       fields={[
-        { name: 'opportunity_id', label: 'Opportunity ID', required: true },
+        { name: 'event_id', label: 'Event ID', required: true },
         { name: 'title', label: 'Title', required: true },
         { name: 'amount', label: 'Amount', type: 'number' },
         {
@@ -31,15 +32,15 @@ export function ProposalsPage() {
       ]}
       transformPayload={(form) => ({
         ...form,
-        opportunity_id: Number(form.opportunity_id),
+        event_id: Number(form.event_id),
         amount: Number(form.amount || 0),
       })}
       columns={[
         { key: 'title', label: 'Title' },
         {
-          key: 'opportunity',
-          label: 'Opportunity',
-          render: (row: any) => row.opportunity?.name ?? row.opportunity_id,
+          key: 'event',
+          label: 'Event',
+          render: (row: any) => row.event?.name ?? row.event_id,
         },
         { key: 'status', label: 'Status' },
         {
@@ -54,9 +55,8 @@ export function ProposalsPage() {
       ]}
       detailTo={(row) => `/booking/proposals/${row.id}`}
       actions={(row, { refresh }) => (
-        <button
-          type="button"
-          className="text-primary hover:underline"
+        <ActionButton
+          size="sm"
           onClick={() => {
             void api(`/booking/proposals/${row.id}/contracts`, {
               method: 'POST',
@@ -65,7 +65,7 @@ export function ProposalsPage() {
           }}
         >
           Create contract
-        </button>
+        </ActionButton>
       )}
     />
   );

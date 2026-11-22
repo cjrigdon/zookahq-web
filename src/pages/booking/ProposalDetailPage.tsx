@@ -10,16 +10,16 @@ export function ProposalDetailPage() {
   const isNew = id === 'new';
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const prefOpp = params.get('opportunity_id') ?? '';
+  const prefEvent = params.get('event_id') ?? '';
 
-  const { data: opps } = useQuery({
-    queryKey: ['booking-opportunities'],
-    queryFn: () => api<{ data: { data: any[] } }>('/booking/opportunities'),
+  const { data: events } = useQuery({
+    queryKey: ['events-list'],
+    queryFn: () => api<{ data: { data: any[] } }>('/events/events'),
     enabled: isNew,
   });
 
   const [form, setForm] = useState({
-    opportunity_id: prefOpp,
+    event_id: prefEvent,
     title: '',
     status: 'draft',
     amount: '0',
@@ -35,13 +35,13 @@ export function ProposalDetailPage() {
         method: 'POST',
         body: JSON.stringify({
           ...form,
-          opportunity_id: Number(form.opportunity_id),
+          event_id: Number(form.event_id),
           amount: Number(form.amount || 0),
           valid_until: form.valid_until || null,
         }),
       }),
     onSuccess: async (res: any) => {
-      await qc.invalidateQueries({ queryKey: ['booking-opportunity', form.opportunity_id] });
+      await qc.invalidateQueries({ queryKey: ['event', form.event_id] });
       navigate(`/booking/proposals/${res.data.id}`);
     },
     onError: (err: Error) => setError(err.message),
@@ -51,7 +51,7 @@ export function ProposalDetailPage() {
     return (
       <div className="max-w-xl space-y-4">
         <Link
-          to={prefOpp ? `/booking/opportunities/${prefOpp}` : '/booking/proposals'}
+          to={prefEvent ? `/events/events/${prefEvent}` : '/booking/proposals'}
           className="text-sm text-primary hover:underline"
         >
           ← Back
@@ -65,15 +65,15 @@ export function ProposalDetailPage() {
           }}
         >
           <label className="block text-sm">
-            <span className="mb-1 block text-slate-600">Opportunity</span>
+            <span className="mb-1 block text-slate-600">Event</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
-              value={form.opportunity_id}
-              onChange={(e) => setForm({ ...form, opportunity_id: e.target.value })}
+              className="zhq-select zhq-select--block"
+              value={form.event_id}
+              onChange={(e) => setForm({ ...form, event_id: e.target.value })}
               required
             >
               <option value="">Select…</option>
-              {(opps?.data?.data ?? []).map((o) => (
+              {(events?.data?.data ?? []).map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.name}
                 </option>
@@ -159,12 +159,12 @@ export function ProposalDetailPage() {
       }
       related={(record) => [
         {
-          title: 'Opportunity',
-          rows: record.opportunity ? [record.opportunity] : [],
-          getRowLink: (row) => `/booking/opportunities/${row.id}`,
+          title: 'Event',
+          rows: record.event ? [record.event] : [],
+          getRowLink: (row) => `/events/events/${row.id}`,
           columns: [
             { key: 'name', label: 'Name' },
-            { key: 'stage', label: 'Stage' },
+            { key: 'status', label: 'Status' },
           ],
         },
         {

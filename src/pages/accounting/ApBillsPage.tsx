@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 
 export function ApBillsPage() {
@@ -91,15 +91,7 @@ export function ApBillsPage() {
                 className="cursor-pointer border-t border-slate-100 hover:bg-support/40"
                 onClick={() => navigate(`/accounting/ap-bills/${row.id}`)}
               >
-                <td className="px-4 py-3 font-medium">
-                  <Link
-                    to={`/accounting/ap-bills/${row.id}`}
-                    className="text-primary hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {row.bill_number}
-                  </Link>
-                </td>
+                <td className="px-4 py-3 font-medium text-slate-900">{row.bill_number}</td>
                 <td className="px-4 py-3">{row.vendor_name}</td>
                 <td className="px-4 py-3 capitalize">{row.status}</td>
                 <td className="px-4 py-3">

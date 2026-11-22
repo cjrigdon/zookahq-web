@@ -1,31 +1,42 @@
-import { api } from '../../api/client';
+import { leadAddressKeys } from '../../components/AddressFields';
 import { ResourcePage } from '../../components/ResourcePage';
 
 export function LeadsPage() {
   return (
     <ResourcePage
       title="Leads"
-      description="Capture and qualify inbound event demand."
+      description="Match inbound contacts to existing accounts or convert them into new ones."
       queryKey="booking-leads"
       endpoint="/booking/leads"
       initialForm={{
-        first_name: '',
-        last_name: '',
-        email: '',
-        company: '',
+        account_name: '',
+        account_address: '',
+        account_address_2: '',
+        account_city: '',
+        account_state: '',
+        account_postal_code: '',
+        contact_first_name: '',
+        contact_last_name: '',
+        contact_email: '',
+        contact_title: '',
+        contact_phone: '',
         source: 'website',
-        status: 'new',
+        status: 'unqualified',
       }}
       fields={[
-        { name: 'first_name', label: 'First name', required: true },
-        { name: 'last_name', label: 'Last name', required: true },
-        { name: 'email', label: 'Email', type: 'email' },
-        { name: 'company', label: 'Company' },
+        { name: 'account_name', label: 'Account name' },
+        { name: 'account_address', label: 'Account address', type: 'address', addressKeys: leadAddressKeys },
+        { name: 'contact_first_name', label: 'Contact first name', required: true },
+        { name: 'contact_last_name', label: 'Contact last name', required: true },
+        { name: 'contact_email', label: 'Contact email', type: 'email' },
+        { name: 'contact_title', label: 'Contact title' },
+        { name: 'contact_phone', label: 'Contact phone' },
         { name: 'source', label: 'Source' },
         {
           name: 'status',
           label: 'Status',
           options: [
+            { value: 'unqualified', label: 'Unqualified' },
             { value: 'new', label: 'New' },
             { value: 'qualified', label: 'Qualified' },
             { value: 'converted', label: 'Converted' },
@@ -33,30 +44,19 @@ export function LeadsPage() {
         },
       ]}
       columns={[
+        { key: 'account_name', label: 'Account name' },
         {
-          key: 'name',
-          label: 'Name',
-          render: (row: any) => `${row.first_name} ${row.last_name}`,
+          key: 'contact',
+          label: 'Contact',
+          render: (row: any) =>
+            `${row.contact_first_name ?? ''} ${row.contact_last_name ?? ''}`.trim() || '—',
         },
-        { key: 'company', label: 'Company' },
-        { key: 'email', label: 'Email' },
+        { key: 'contact_email', label: 'Contact email' },
+        { key: 'contact_title', label: 'Title' },
+        { key: 'contact_phone', label: 'Phone' },
         { key: 'status', label: 'Status' },
       ]}
       detailTo={(row) => `/booking/leads/${row.id}`}
-      actions={(row, { refresh }) => (
-        <button
-          type="button"
-          className="text-primary hover:underline disabled:opacity-40"
-          disabled={row.status === 'converted'}
-          onClick={() => {
-            void api(`/booking/leads/${row.id}/convert`, { method: 'POST', body: '{}' }).then(
-              refresh,
-            );
-          }}
-        >
-          Convert
-        </button>
-      )}
     />
   );
 }

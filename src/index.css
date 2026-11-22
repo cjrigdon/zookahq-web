@@ -3,6 +3,8 @@
 @theme {
   --color-primary: #0f766e;
   --color-primary-dark: #0d9488;
+  --color-primary-deep: #0b5550;
+  --color-chrome-border: #e5e7eb;
   --color-accent: #f5c463;
   --color-accent-dark: #e5b04a;
   --color-support: #ccfbf1;
@@ -29,5 +31,111 @@
 
   * {
     box-sizing: border-box;
+  }
+}
+
+/* Unlayered so ZookaHQ select styling wins over utility classes app-wide */
+select,
+.zhq-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: auto;
+  max-width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%230f766e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.7rem center;
+  background-repeat: no-repeat;
+  background-size: 1.05rem 1.05rem;
+  padding: 0.55rem 2.4rem 0.55rem 0.8rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--color-text);
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    inset 0 1px 0 rgb(255 255 255 / 0.8);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+  cursor: pointer;
+}
+
+select.zhq-select--block,
+select.w-full,
+.zhq-select.zhq-select--block,
+.zhq-select.w-full {
+  width: 100%;
+}
+
+select:hover,
+.zhq-select:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, #cbd5e1);
+}
+
+select:focus,
+select:focus-visible,
+.zhq-select:focus,
+.zhq-select:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent),
+    0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+select:disabled,
+.zhq-select:disabled {
+  cursor: not-allowed;
+  background-color: #f8fafc;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  box-shadow: none;
+  opacity: 1;
+}
+
+select option,
+.zhq-select option {
+  color: var(--color-text);
+  background: #fff;
+}
+
+@layer utilities {
+  .scrollbar-timeline {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-primary) 45%, #cbd5e1) transparent;
+  }
+
+  .scrollbar-timeline::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .scrollbar-timeline::-webkit-scrollbar-track {
+    margin-inline: 0.5rem;
+    background: color-mix(in srgb, var(--color-support) 55%, #f1f5f9);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-timeline::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-primary) 55%, #94a3b8),
+      var(--color-primary)
+    );
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .scrollbar-timeline::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      90deg,
+      var(--color-primary),
+      var(--color-primary-deep)
+    );
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 }

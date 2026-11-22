@@ -1,3 +1,4 @@
+import { accountAddressKeys } from '../../components/AddressFields';
 import { ResourcePage } from '../../components/ResourcePage';
 
 export function AccountsPage() {
@@ -7,13 +8,21 @@ export function AccountsPage() {
       description="Organizations and venue clients."
       queryKey="booking-accounts"
       endpoint="/booking/accounts"
-      initialForm={{ name: '', email: '', phone: '', city: '', state: '' }}
+      initialForm={{
+        name: '',
+        email: '',
+        phone: '',
+        billing_address: '',
+        address_2: '',
+        city: '',
+        state: '',
+        postal_code: '',
+      }}
       fields={[
         { name: 'name', label: 'Account name', required: true },
         { name: 'email', label: 'Email', type: 'email' },
         { name: 'phone', label: 'Phone' },
-        { name: 'city', label: 'City' },
-        { name: 'state', label: 'State' },
+        { name: 'billing_address', label: 'Address', type: 'address', addressKeys: accountAddressKeys },
       ]}
       columns={[
         { key: 'name', label: 'Name' },

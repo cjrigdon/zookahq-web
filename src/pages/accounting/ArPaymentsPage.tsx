@@ -122,7 +122,7 @@ export function ArPaymentsPage() {
             <label className="mb-3 block text-sm">
               <span className="mb-1 block text-slate-600">Invoice</span>
               <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2"
+                className="zhq-select zhq-select--block"
                 value={form.ar_invoice_id}
                 onChange={(e) => setForm({ ...form, ar_invoice_id: e.target.value })}
                 required

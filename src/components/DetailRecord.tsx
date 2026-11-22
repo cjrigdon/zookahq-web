@@ -2,6 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
+import { toDateTimeLocalValue } from '../lib/datetimeInput';
+import { formatDateTime } from '../lib/formatDateTime';
+import { useNavBack } from '../lib/navContext';
+import { AddressFields, addressFieldValues, type AddressKeys } from './AddressFields';
+import { DetailSection } from './detail/DetailSection';
+import { RelatedTable } from './detail/RelatedTable';
+import { ActionButton } from './ui/ActionButton';
+import { DateTimePicker } from './ui/DateTimePicker';
 
 export type DetailField = {
   name: string;
@@ -10,6 +18,7 @@ export type DetailField = {
   required?: boolean;
   options?: Array<{ value: string; label: string }>;
   readOnly?: boolean;
+  addressKeys?: AddressKeys;
 };
 
 export type RelatedColumn = {
@@ -38,6 +47,7 @@ type Props = {
   transformSave?: (form: Record<string, string>, record: any) => Record<string, unknown>;
   related?: (record: any) => RelatedSection[];
   actions?: (record: any, helpers: { refresh: () => void }) => ReactNode;
+  extra?: (record: any, helpers: { refresh: () => void }) => ReactNode;
   canDelete?: boolean;
   deleteRedirectTo?: string;
 };
@@ -45,10 +55,7 @@ type Props = {
 function toInputValue(value: unknown, type?: string): string {
   if (value == null) return '';
   if (type === 'datetime-local') {
-    const d = new Date(String(value));
-    if (Number.isNaN(d.getTime())) return '';
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return toDateTimeLocalValue(value);
   }
   if (type === 'date') {
     return String(value).slice(0, 10);
@@ -68,12 +75,17 @@ export function DetailRecord({
   transformSave,
   related,
   actions,
+  extra,
   canDelete = true,
   deleteRedirectTo,
 }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const key = Array.isArray(queryKey) ? queryKey : [queryKey];
+  const nav = useNavBack(backTo, backLabel);
+  const resolvedBackTo = nav.backTo;
+  const resolvedBackLabel = nav.backLabel;
+  const resolvedDeleteTo = deleteRedirectTo ?? nav.deleteRedirectTo;
 
   const { data, isLoading, error: loadError } = useQuery({
     queryKey: key,
@@ -93,7 +105,13 @@ export function DetailRecord({
     }
     const next: Record<string, string> = {};
     for (const field of fields) {
-      next[field.name] = toInputValue(record[field.name], field.type);
+      if (field.type === 'address' && field.addressKeys) {
+        for (const key of Object.values(field.addressKeys)) {
+          next[key] = toInputValue(record[key]);
+        }
+      } else {
+        next[field.name] = toInputValue(record[field.name], field.type);
+      }
     }
     setForm(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when record identity changes
@@ -118,7 +136,7 @@ export function DetailRecord({
   const deleteMutation = useMutation({
     mutationFn: () => api(endpoint, { method: 'DELETE' }),
     onSuccess: () => {
-      navigate(deleteRedirectTo ?? backTo);
+      navigate(resolvedDeleteTo);
     },
     onError: (err: Error) => setError(err.message),
   });
@@ -127,8 +145,8 @@ export function DetailRecord({
   if (loadError || !record) {
     return (
       <div>
-        <Link to={backTo} className="text-sm text-primary hover:underline">
-          ← {backLabel}
+        <Link to={resolvedBackTo} className="text-sm text-primary hover:underline">
+          ← {resolvedBackLabel}
         </Link>
         <p className="mt-4 text-sm text-red-600">
           {(loadError as Error | undefined)?.message ?? 'Record not found.'}
@@ -143,8 +161,8 @@ export function DetailRecord({
   return (
     <div className="space-y-6">
       <div>
-        <Link to={backTo} className="text-sm text-primary hover:underline">
-          ← {backLabel}
+        <Link to={resolvedBackTo} className="text-sm text-primary hover:underline">
+          ← {resolvedBackLabel}
         </Link>
         <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -156,32 +174,21 @@ export function DetailRecord({
               refresh: () => void qc.invalidateQueries({ queryKey: key }),
             })}
             {!editing ? (
-              <button
-                type="button"
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium"
-                onClick={() => setEditing(true)}
-              >
-                Edit
-              </button>
+              <ActionButton onClick={() => setEditing(true)}>Edit</ActionButton>
             ) : (
-              <button
-                type="button"
-                className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm"
-                onClick={() => setEditing(false)}
-              >
+              <ActionButton variant="secondary" onClick={() => setEditing(false)}>
                 Cancel
-              </button>
+              </ActionButton>
             )}
             {canDelete && (
-              <button
-                type="button"
-                className="rounded-md border border-red-200 px-4 py-2 text-sm text-red-700"
+              <ActionButton
+                variant="danger"
                 onClick={() => {
                   if (window.confirm('Delete this record?')) deleteMutation.mutate();
                 }}
               >
                 Delete
-              </button>
+              </ActionButton>
             )}
           </div>
         </div>
@@ -196,15 +203,26 @@ export function DetailRecord({
               saveMutation.mutate();
             }}
           >
-            {fields.map((field) => (
+            {fields.map((field) =>
+              field.type === 'address' && field.addressKeys ? (
+                <AddressFields
+                  key={field.name}
+                  values={form}
+                  keys={field.addressKeys}
+                  disabled={field.readOnly}
+                  onChange={(patch) => setForm({ ...form, ...patch })}
+                />
+              ) : (
               <label
                 key={field.name}
-                className={`block text-sm ${field.type === 'textarea' ? 'md:col-span-2' : ''}`}
+                className={`block text-sm ${field.type === 'textarea' || field.type === 'checkbox' ? 'md:col-span-2' : ''}`}
               >
-                <span className="mb-1 block text-slate-600">{field.label}</span>
+                {field.type !== 'checkbox' && (
+                  <span className="mb-1 block text-slate-600">{field.label}</span>
+                )}
                 {field.options ? (
                   <select
-                    className="w-full rounded-md border border-slate-300 px-3 py-2"
+                    className="zhq-select zhq-select--block"
                     value={form[field.name] ?? ''}
                     onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
                     required={field.required}
@@ -224,6 +242,26 @@ export function DetailRecord({
                     onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
                     disabled={field.readOnly}
                   />
+                ) : field.type === 'checkbox' ? (
+                  <span className="mt-2 flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300"
+                      checked={form[field.name] === '1' || form[field.name] === 'true'}
+                      onChange={(e) =>
+                        setForm({ ...form, [field.name]: e.target.checked ? '1' : '0' })
+                      }
+                      disabled={field.readOnly}
+                    />
+                    <span className="text-slate-700">{field.label}</span>
+                  </span>
+                ) : field.type === 'datetime-local' ? (
+                  <DateTimePicker
+                    required={field.required}
+                    value={form[field.name] ?? ''}
+                    onChange={(next) => setForm({ ...form, [field.name]: next })}
+                    className={field.readOnly ? 'pointer-events-none opacity-60' : undefined}
+                  />
                 ) : (
                   <input
                     className="w-full rounded-md border border-slate-300 px-3 py-2"
@@ -235,98 +273,73 @@ export function DetailRecord({
                   />
                 )}
               </label>
-            ))}
+              ),
+            )}
             {error && <p className="md:col-span-2 text-sm text-red-600">{error}</p>}
             <div className="md:col-span-2 flex justify-end gap-2">
-              <button
-                type="submit"
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium"
-                disabled={saveMutation.isPending}
-              >
+              <ActionButton type="submit" disabled={saveMutation.isPending}>
                 {saveMutation.isPending ? 'Saving…' : 'Save changes'}
-              </button>
+              </ActionButton>
             </div>
           </form>
         ) : (
           <dl className="grid gap-4 md:grid-cols-2">
-            {fields.map((field) => (
+            {fields.map((field) =>
+              field.type === 'address' && field.addressKeys ? (
+                addressFieldValues(record, field.addressKeys).map((part) => (
+                  <div key={`${field.name}-${part.label}`} className="md:col-span-2">
+                    <dt className="text-xs uppercase tracking-wide text-slate-500">{part.label}</dt>
+                    <dd className="mt-1 whitespace-pre-line text-sm text-text">
+                      {part.value == null || part.value === '' ? '—' : String(part.value)}
+                    </dd>
+                  </div>
+                ))
+              ) : (
               <div key={field.name} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
                 <dt className="text-xs uppercase tracking-wide text-slate-500">{field.label}</dt>
                 <dd className="mt-1 text-sm text-text">
                   {formatDisplay(record[field.name], field)}
                 </dd>
               </div>
-            ))}
+              ),
+            )}
           </dl>
         )}
       </section>
 
+      {extra?.(record, {
+        refresh: () => void qc.invalidateQueries({ queryKey: key }),
+      })}
+
       {sections.map((section) => (
-        <section key={section.title} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-          <header className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <h3 className="text-sm font-medium">{section.title}</h3>
-            {section.headerAction}
-          </header>
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-              <tr>
-                {section.columns.map((col) => (
-                  <th key={col.key} className="px-4 py-2 text-left">
-                    {col.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {(section.rows ?? []).map((row) => {
-                const link = section.getRowLink?.(row);
-                const cells = section.columns.map((col) => (
-                  <td key={col.key} className="px-4 py-2">
-                    {col.render
-                      ? col.render(row)
-                      : String(row[col.key] ?? '—')}
-                  </td>
-                ));
-                return link ? (
-                  <tr
-                    key={row.id}
-                    className="cursor-pointer border-t border-slate-100 hover:bg-support/40"
-                    onClick={() => navigate(link)}
-                  >
-                    {cells}
-                  </tr>
-                ) : (
-                  <tr key={row.id} className="border-t border-slate-100">
-                    {cells}
-                  </tr>
-                );
-              })}
-              {(section.rows ?? []).length === 0 && (
-                <tr>
-                  <td
-                    className="px-4 py-6 text-slate-500"
-                    colSpan={Math.max(section.columns.length, 1)}
-                  >
-                    {section.emptyText ?? 'None yet.'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </section>
+        <DetailSection
+          key={section.title}
+          title={section.title}
+          action={section.headerAction}
+        >
+          <RelatedTable
+            bare
+            rows={section.rows ?? []}
+            columns={section.columns}
+            emptyText={section.emptyText ?? 'None yet.'}
+            getRowLink={section.getRowLink}
+          />
+        </DetailSection>
       ))}
     </div>
   );
 }
 
 function formatDisplay(value: unknown, field: DetailField) {
+  if (field.type === 'checkbox') {
+    return value === true || value === 1 || value === '1' || value === 'true' ? 'Yes' : 'No';
+  }
   if (value == null || value === '') return '—';
   if (field.options) {
     return field.options.find((o) => o.value === String(value))?.label ?? String(value);
   }
   if (field.type === 'datetime-local') {
-    const d = new Date(String(value));
-    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString();
+    return formatDateTime(String(value), { wallClock: true });
   }
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
   return String(value);

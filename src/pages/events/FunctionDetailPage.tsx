@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { EntityChecklists } from '../../components/checklists/EntityChecklists';
 import { DetailRecord } from '../../components/DetailRecord';
 
 export function FunctionDetailPage() {
@@ -64,6 +65,7 @@ export function FunctionDetailPage() {
           ],
         },
       ]}
+      extra={(record) => <EntityChecklists type="function" recordId={record.id} />}
     />
   );
 }

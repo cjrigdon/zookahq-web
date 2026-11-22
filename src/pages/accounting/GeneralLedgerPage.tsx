@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { api } from '../../api/client';
+import { DetailSection } from '../../components/detail/DetailSection';
+import { ActionButton } from '../../components/ui/ActionButton';
 
 type JournalLineForm = {
   gl_account_id: string;
@@ -27,6 +29,7 @@ export function GeneralLedgerPage() {
     queryFn: () => api<{ data: { data: any[] } }>('/accounting/gl-journal-entries'),
   });
   const [accountForm, setAccountForm] = useState({ code: '', name: '', type: 'expense' });
+  const [accountFormOpen, setAccountFormOpen] = useState(false);
   const [entryOpen, setEntryOpen] = useState(false);
   const [entryForm, setEntryForm] = useState({
     entry_date: new Date().toISOString().slice(0, 10),
@@ -40,6 +43,7 @@ export function GeneralLedgerPage() {
       api('/accounting/gl-accounts', { method: 'POST', body: JSON.stringify(accountForm) }),
     onSuccess: async () => {
       setAccountForm({ code: '', name: '', type: 'expense' });
+      setAccountFormOpen(false);
       await qc.invalidateQueries({ queryKey: ['accounting-gl-accounts'] });
     },
     onError: (err: Error) => setError(err.message),
@@ -89,83 +93,104 @@ export function GeneralLedgerPage() {
           <h2 className="font-[family-name:var(--font-display)] text-2xl">General Ledger</h2>
           <p className="text-sm text-slate-600">Chart of accounts and journal entries.</p>
         </div>
-        <button
-          type="button"
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium"
+        <ActionButton
           onClick={() => {
             setError(null);
             setEntryOpen(true);
           }}
         >
           New journal entry
-        </button>
+        </ActionButton>
       </div>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <h3 className="mb-3 text-sm font-medium">Add GL account</h3>
-        <form
-          className="grid gap-3 md:grid-cols-4"
-          onSubmit={(e: FormEvent) => {
-            e.preventDefault();
-            createAccount.mutate();
-          }}
-        >
-          <input
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-            placeholder="Code"
-            value={accountForm.code}
-            onChange={(e) => setAccountForm({ ...accountForm, code: e.target.value })}
-            required
-          />
-          <input
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-            placeholder="Name"
-            value={accountForm.name}
-            onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
-            required
-          />
-          <select
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-            value={accountForm.type}
-            onChange={(e) => setAccountForm({ ...accountForm, type: e.target.value })}
+      <DetailSection
+        title="Chart of accounts"
+        action={
+          !accountFormOpen ? (
+            <ActionButton
+              size="sm"
+              onClick={() => {
+                setError(null);
+                setAccountFormOpen(true);
+              }}
+            >
+              Add account
+            </ActionButton>
+          ) : null
+        }
+      >
+        {accountFormOpen && (
+          <form
+            className="grid gap-3 border-b border-slate-100 px-4 py-4 md:grid-cols-4"
+            onSubmit={(e: FormEvent) => {
+              e.preventDefault();
+              createAccount.mutate();
+            }}
           >
-            {['asset', 'liability', 'equity', 'revenue', 'expense'].map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <button type="submit" className="rounded-md bg-accent px-4 py-2 text-sm font-medium">
-            Add account
-          </button>
-        </form>
-        {error && !entryOpen && <p className="mt-2 text-sm text-red-600">{error}</p>}
-        <div className="mt-4 overflow-hidden rounded-md border border-slate-100">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-              <tr>
-                <th className="px-3 py-2 text-left">Code</th>
-                <th className="px-3 py-2 text-left">Name</th>
-                <th className="px-3 py-2 text-left">Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(accounts?.data ?? []).map((a) => (
-                <tr key={a.id} className="border-t border-slate-100">
-                  <td className="px-3 py-2 font-mono text-xs">{a.code}</td>
-                  <td className="px-3 py-2">{a.name}</td>
-                  <td className="px-3 py-2 capitalize">{a.type}</td>
-                </tr>
+            <input
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              placeholder="Code"
+              value={accountForm.code}
+              onChange={(e) => setAccountForm({ ...accountForm, code: e.target.value })}
+              required
+            />
+            <input
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              placeholder="Name"
+              value={accountForm.name}
+              onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
+              required
+            />
+            <select
+              className="zhq-select text-sm"
+              value={accountForm.type}
+              onChange={(e) => setAccountForm({ ...accountForm, type: e.target.value })}
+            >
+              {['asset', 'liability', 'equity', 'revenue', 'expense'].map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+            </select>
+            <div className="flex gap-2">
+              <ActionButton
+                variant="secondary"
+                onClick={() => {
+                  setAccountForm({ code: '', name: '', type: 'expense' });
+                  setAccountFormOpen(false);
+                  setError(null);
+                }}
+              >
+                Cancel
+              </ActionButton>
+              <ActionButton type="submit">Add account</ActionButton>
+            </div>
+          </form>
+        )}
+        {error && !entryOpen ? (
+          <p className="border-b border-slate-100 px-4 py-3 text-sm text-red-600">{error}</p>
+        ) : null}
+        <table className="min-w-full text-sm">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <tr>
+              <th className="px-4 py-2 text-left">Code</th>
+              <th className="px-4 py-2 text-left">Name</th>
+              <th className="px-4 py-2 text-left">Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(accounts?.data ?? []).map((a) => (
+              <tr key={a.id} className="border-t border-slate-100">
+                <td className="px-4 py-2 font-mono text-xs">{a.code}</td>
+                <td className="px-4 py-2">{a.name}</td>
+                <td className="px-4 py-2 capitalize">{a.type}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </DetailSection>
 
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <header className="border-b border-slate-100 px-4 py-3 text-sm font-medium">
-          Journal entries
-        </header>
+      <DetailSection title="Journal entries">
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
@@ -185,7 +210,7 @@ export function GeneralLedgerPage() {
             )}
             {(entries?.data?.data ?? []).map((entry) => (
               <tr key={entry.id} className="border-t border-slate-100 hover:bg-support/40">
-                <td className="px-4 py-3 font-medium">{entry.entry_number}</td>
+                <td className="px-4 py-3 font-medium text-slate-900">{entry.entry_number}</td>
                 <td className="px-4 py-3">{entry.entry_date}</td>
                 <td className="px-4 py-3">{entry.memo ?? '—'}</td>
                 <td className="px-4 py-3 text-xs text-slate-600">
@@ -200,7 +225,7 @@ export function GeneralLedgerPage() {
             ))}
           </tbody>
         </table>
-      </section>
+      </DetailSection>
 
       {entryOpen && (
         <div className="fixed inset-0 z-20 flex items-center justify-center bg-slate-900/40 p-4">
@@ -242,7 +267,7 @@ export function GeneralLedgerPage() {
                   <label className="block text-sm md:col-span-2">
                     <span className="mb-1 block text-slate-600">Account</span>
                     <select
-                      className="w-full rounded-md border border-slate-300 px-3 py-2"
+                      className="zhq-select zhq-select--block"
                       value={line.gl_account_id}
                       onChange={(e) => updateLine(index, { gl_account_id: e.target.value })}
                       required

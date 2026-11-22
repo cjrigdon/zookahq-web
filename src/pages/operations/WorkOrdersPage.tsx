@@ -1,5 +1,6 @@
 import { api } from '../../api/client';
 import { ResourcePage } from '../../components/ResourcePage';
+import { ActionButton } from '../../components/ui/ActionButton';
 
 export function WorkOrdersPage() {
   return (
@@ -73,9 +74,8 @@ export function WorkOrdersPage() {
       detailTo={(row) => `/operations/work-orders/${row.id}`}
       actions={(row, { refresh }) =>
         row.status !== 'completed' ? (
-          <button
-            type="button"
-            className="text-primary hover:underline"
+          <ActionButton
+            size="sm"
             onClick={() => {
               void api(`/operations/work-orders/${row.id}`, {
                 method: 'PUT',
@@ -84,7 +84,7 @@ export function WorkOrdersPage() {
             }}
           >
             Complete
-          </button>
+          </ActionButton>
         ) : null
       }
     />

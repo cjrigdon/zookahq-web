@@ -1,15 +1,44 @@
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { api } from '../../api/client';
 import { ResourcePage } from '../../components/ResourcePage';
+import { EVENT_STATUSES } from '../../lib/eventStatuses';
+import { formatDateTime } from '../../lib/formatDateTime';
+
+type EventTypeOption = {
+  id: number;
+  code: string;
+  name: string;
+  background_color: string;
+  text_color: string;
+};
 
 export function EventsPage() {
+  const { data: typesData } = useQuery({
+    queryKey: ['event-types'],
+    queryFn: () => api<{ data: EventTypeOption[] }>('/events/event-types'),
+  });
+
+  const typeOptions = useMemo(
+    () =>
+      (typesData?.data ?? []).map((type) => ({
+        value: String(type.id),
+        label: `${type.name} (${type.code})`,
+      })),
+    [typesData?.data],
+  );
+
   return (
     <ResourcePage
       title="Events"
-      description="Confirmed venue events and timelines."
+      description="Venue events across the pipeline, from opportunity through completion."
       queryKey="events-list"
       endpoint="/events/events"
       initialForm={{
         name: '',
+        event_type_id: '',
         status: 'confirmed',
+        value: '0',
         starts_at: '',
         ends_at: '',
         venue_space: '',
@@ -18,15 +47,13 @@ export function EventsPage() {
       fields={[
         { name: 'name', label: 'Event name', required: true },
         {
-          name: 'status',
-          label: 'Status',
-          options: [
-            { value: 'confirmed', label: 'Confirmed' },
-            { value: 'tentative', label: 'Tentative' },
-            { value: 'completed', label: 'Completed' },
-            { value: 'cancelled', label: 'Cancelled' },
-          ],
+          name: 'event_type_id',
+          label: 'Event type',
+          required: true,
+          options: typeOptions,
         },
+        { name: 'status', label: 'Status', options: EVENT_STATUSES },
+        { name: 'value', label: 'Value', type: 'number' },
         { name: 'starts_at', label: 'Starts at', type: 'datetime-local', required: true },
         { name: 'ends_at', label: 'Ends at', type: 'datetime-local', required: true },
         { name: 'venue_space', label: 'Venue space' },
@@ -34,12 +61,37 @@ export function EventsPage() {
       ]}
       transformPayload={(form) => ({
         ...form,
+        event_type_id: form.event_type_id ? Number(form.event_type_id) : null,
+        value: Number(form.value || 0),
         expected_attendance: form.expected_attendance
           ? Number(form.expected_attendance)
           : null,
       })}
       columns={[
         { key: 'name', label: 'Name' },
+        {
+          key: 'account',
+          label: 'Account',
+          render: (row: any) => row.account?.name ?? '—',
+        },
+        {
+          key: 'event_type',
+          label: 'Type',
+          render: (row: any) =>
+            row.event_type ? (
+              <span
+                className="inline-flex rounded px-2 py-0.5 text-xs font-medium"
+                style={{
+                  backgroundColor: row.event_type.background_color,
+                  color: row.event_type.text_color,
+                }}
+              >
+                {row.event_type.name}
+              </span>
+            ) : (
+              '—'
+            ),
+        },
         {
           key: 'status',
           label: 'Status',
@@ -48,14 +100,27 @@ export function EventsPage() {
               <span className="rounded bg-accent/30 px-2 py-0.5 text-xs font-medium">
                 Confirmed
               </span>
+            ) : row.status === 'opportunity' ? (
+              <span className="rounded bg-support px-2 py-0.5 text-xs font-medium text-primary">
+                Opportunity
+              </span>
             ) : (
               <span className="capitalize">{row.status}</span>
             ),
         },
         {
+          key: 'value',
+          label: 'Value',
+          render: (row: any) =>
+            Number(row.value ?? 0).toLocaleString(undefined, {
+              style: 'currency',
+              currency: 'USD',
+            }),
+        },
+        {
           key: 'starts_at',
           label: 'Starts',
-          render: (row: any) => new Date(row.starts_at).toLocaleString(),
+          render: (row: any) => formatDateTime(row.starts_at, { wallClock: true }),
         },
         { key: 'venue_space', label: 'Space' },
       ]}

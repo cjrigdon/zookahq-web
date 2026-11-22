@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 
 type Tenant = {
@@ -14,6 +14,7 @@ type Tenant = {
 type Module = { id: number; code: string; name: string };
 
 export function TenantsPage() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['platform-tenants'],
@@ -78,20 +79,23 @@ export function TenantsPage() {
               <th className="px-4 py-3">Slug</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Modules</th>
-              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {isLoading && (
               <tr>
-                <td className="px-4 py-6 text-slate-500" colSpan={5}>
+                <td className="px-4 py-6 text-slate-500" colSpan={4}>
                   Loading…
                 </td>
               </tr>
             )}
             {data?.data.map((tenant) => (
-              <tr key={tenant.id} className="border-t border-slate-100 hover:bg-support/40">
-                <td className="px-4 py-3 font-medium">{tenant.name}</td>
+              <tr
+                key={tenant.id}
+                className="cursor-pointer border-t border-slate-100 hover:bg-support/40"
+                onClick={() => navigate(`/tenants/${tenant.id}`)}
+              >
+                <td className="px-4 py-3 font-medium text-slate-900">{tenant.name}</td>
                 <td className="px-4 py-3">{tenant.slug}</td>
                 <td className="px-4 py-3 capitalize">{tenant.status}</td>
                 <td className="px-4 py-3">
@@ -99,11 +103,6 @@ export function TenantsPage() {
                     .filter((m) => m.enabled)
                     .map((m) => m.module.code)
                     .join(', ') || '—'}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Link className="text-primary hover:underline" to={`/tenants/${tenant.id}`}>
-                    Manage
-                  </Link>
                 </td>
               </tr>
             ))}

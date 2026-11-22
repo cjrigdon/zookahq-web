@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { api } from '../../api/client';
+import { ActionButton } from '../../components/ui/ActionButton';
 
 export function UsersPage() {
   const qc = useQueryClient();
@@ -43,13 +44,7 @@ export function UsersPage() {
           <h2 className="font-[family-name:var(--font-display)] text-2xl">Users</h2>
           <p className="text-sm text-slate-600">Manage tenant users and roles.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium"
-        >
-          Add user
-        </button>
+        <ActionButton onClick={() => setOpen(true)}>Add user</ActionButton>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -101,7 +96,7 @@ export function UsersPage() {
             <label className="mb-3 block text-sm">
               <span className="mb-1 block text-slate-600">Role</span>
               <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2"
+                className="zhq-select zhq-select--block"
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
               >
