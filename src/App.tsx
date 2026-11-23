@@ -11,6 +11,8 @@ import { UsersPage } from './pages/tenant/UsersPage';
 import { SettingsPage } from './pages/tenant/SettingsPage';
 import { ChecklistsPage } from './pages/tenant/ChecklistsPage';
 import { ChecklistDetailPage } from './pages/tenant/ChecklistDetailPage';
+import { DocumentsPage } from './pages/tenant/DocumentsPage';
+import { DocumentTemplateDetailPage } from './pages/tenant/DocumentTemplateDetailPage';
 import { SpacesPage } from './pages/tenant/SpacesPage';
 import { SpaceDetailPage } from './pages/tenant/SpaceDetailPage';
 import { SpaceAttributesPage } from './pages/tenant/SpaceAttributesPage';
@@ -150,6 +152,8 @@ function TenantRoutes() {
         <Route path="admin/users" element={<UsersPage />} />
         <Route path="admin/checklists" element={<ChecklistsPage />} />
         <Route path="admin/checklists/:id" element={<ChecklistDetailPage />} />
+        <Route path="admin/documents" element={<DocumentsPage />} />
+        <Route path="admin/documents/:id" element={<DocumentTemplateDetailPage />} />
         <Route path="admin/spaces" element={<SpacesPage />} />
         <Route path="admin/spaces/:id" element={<SpaceDetailPage />} />
         <Route path="admin/space-attributes" element={<SpaceAttributesPage />} />

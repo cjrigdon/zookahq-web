@@ -5,7 +5,7 @@ export function LeadsPage() {
   return (
     <ResourcePage
       title="Leads"
-      description="Match inbound contacts to existing accounts or convert them into new ones."
+      description="Inbound contacts. Convert attaches to a matching account when one is found, or creates a new account."
       queryKey="booking-leads"
       endpoint="/booking/leads"
       initialForm={{

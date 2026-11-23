@@ -100,6 +100,7 @@ const tenantGroups: NavGroup[] = [
     children: [
       { to: '/admin/users', label: 'Users' },
       { to: '/admin/checklists', label: 'Checklists' },
+      { to: '/admin/documents', label: 'Documents' },
       { to: '/admin/spaces', label: 'Spaces' },
       { to: '/admin/event-types', label: 'Event types' },
       { to: '/admin/lead-form', label: 'Lead form' },

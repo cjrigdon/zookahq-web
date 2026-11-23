@@ -35,11 +35,10 @@ export function EntityChecklists({ type, recordId }: Props) {
     enabled: Boolean(recordId),
   });
 
-  const { data: availableData } = useQuery({
+  const { data: availableData, isLoading: availableLoading } = useQuery({
     queryKey: ['checklist-available', type],
     queryFn: () =>
       api<{ data: ChecklistTemplate[] }>(`/checklists/available?applies_to=${type}`),
-    enabled: adding,
   });
 
   const refresh = async () => {
@@ -95,6 +94,7 @@ export function EntityChecklists({ type, recordId }: Props) {
 
   const instances = instancesData?.data ?? [];
   const available = availableData?.data ?? [];
+  const hasAvailable = available.length > 0;
 
   const startedIds = useMemo(
     () => new Set(instances.map((item) => item.checklist?.id).filter(Boolean)),
@@ -119,6 +119,11 @@ export function EntityChecklists({ type, recordId }: Props) {
     setExpanded((prev) => ({ ...prev, [instanceId]: !prev[instanceId] }));
   }
 
+  // Hide entirely when this entity type has no checklist templates and none started.
+  if (!isLoading && !availableLoading && !hasAvailable && instances.length === 0) {
+    return null;
+  }
+
   return (
     <DetailSection
       title="Checklists"
@@ -126,7 +131,7 @@ export function EntityChecklists({ type, recordId }: Props) {
         .slice(0, -1)
         .toLowerCase()}.`}
       action={
-        !adding ? (
+        !adding && hasAvailable ? (
           <ActionButton
             size="sm"
             aria-label="Start checklist"

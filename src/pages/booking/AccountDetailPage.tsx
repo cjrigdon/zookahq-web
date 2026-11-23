@@ -13,11 +13,12 @@ import { DetailSection } from '../../components/detail/DetailSection';
 import { RelatedTable } from '../../components/detail/RelatedTable';
 import { RowDeleteButton } from '../../components/detail/RowDeleteButton';
 import { EntityChecklists } from '../../components/checklists/EntityChecklists';
+import { EntityDocuments } from '../../components/documents/EntityDocuments';
 import { ActionButton, ActionLink } from '../../components/ui/ActionButton';
 import { formatDateTime } from '../../lib/formatDateTime';
 import { useNavBack, withReturnTo } from '../../lib/navContext';
 
-type Tab = 'overview' | 'contacts' | 'events' | 'notes' | 'checklists';
+type Tab = 'overview' | 'contacts' | 'events' | 'notes' | 'documents' | 'checklists';
 
 type NoteForm = {
   body: string;
@@ -219,6 +220,7 @@ export function AccountDetailPage() {
         { id: 'contacts', label: 'Contacts', count: contacts.length },
         { id: 'events', label: 'Events', count: events.length },
         { id: 'notes', label: 'Notes', count: notes.length },
+        { id: 'documents', label: 'Documents' },
         { id: 'checklists', label: 'Checklists' },
       ]}
       activeSection={tab}
@@ -575,6 +577,19 @@ export function AccountDetailPage() {
           </div>
         </DetailSection>
       )}
+
+      {tab === 'documents' && id ? (
+        <EntityDocuments
+          type="account"
+          recordId={id}
+          defaultTo={
+            record.email ||
+            record.contacts?.find((c: any) => c.is_primary)?.email ||
+            record.contacts?.[0]?.email ||
+            ''
+          }
+        />
+      ) : null}
 
       {tab === 'checklists' && id ? <EntityChecklists type="account" recordId={id} /> : null}
     </DetailShell>

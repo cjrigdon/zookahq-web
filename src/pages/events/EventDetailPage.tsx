@@ -9,6 +9,7 @@ import { DetailSection } from '../../components/detail/DetailSection';
 import { RelatedTable } from '../../components/detail/RelatedTable';
 import { RowDeleteButton } from '../../components/detail/RowDeleteButton';
 import { EntityChecklists } from '../../components/checklists/EntityChecklists';
+import { EntityDocuments } from '../../components/documents/EntityDocuments';
 import { ActionButton, ActionLink } from '../../components/ui/ActionButton';
 import { DateTimePicker } from '../../components/ui/DateTimePicker';
 import { emptyToNull, parseWallClockDateTime, toDateTimeLocalValue } from '../../lib/datetimeInput';
@@ -24,6 +25,7 @@ const SECTIONS = [
   { id: 'vips', label: 'VIPs' },
   { id: 'related', label: 'Related' },
   { id: 'notes', label: 'Notes' },
+  { id: 'documents', label: 'Documents' },
   { id: 'checklists', label: 'Checklists' },
   { id: 'history', label: 'History' },
 ] as const;
@@ -907,6 +909,14 @@ export function EventDetailPage() {
           </div>
         </DetailSection>
       )}
+
+      {section === 'documents' && id ? (
+        <EntityDocuments
+          type="event"
+          recordId={id}
+          defaultTo={record.contact?.email || record.planner_email || record.account?.email || ''}
+        />
+      ) : null}
 
       {section === 'checklists' && id ? (
         <EntityChecklists type="event" recordId={id} />

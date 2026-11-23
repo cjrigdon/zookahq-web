@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 import { DetailRecord } from '../../components/DetailRecord';
+import { EntityDocuments } from '../../components/documents/EntityDocuments';
 
 export function ContactDetailPage() {
   const { id } = useParams();
@@ -153,6 +154,9 @@ export function ContactDetailPage() {
         title: form.title || null,
         is_primary: form.is_primary === '1',
       })}
+      extra={(record) => (
+        <EntityDocuments type="contact" recordId={record.id} defaultTo={record.email || record.account?.email || ''} />
+      )}
       related={(record) => [
         {
           title: 'Account',

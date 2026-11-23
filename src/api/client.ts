@@ -62,25 +62,27 @@ function xsrfToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-export async function api<T = unknown>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const headers = new Headers(options.headers ?? {});
+function authHeaders(headers: Headers) {
   headers.set('Accept', 'application/json');
-  headers.set('Content-Type', 'application/json');
-
   const tenant = getTenantSlug();
   if (tenant) {
     headers.set('X-Tenant', tenant);
     const token = getTenantToken();
     if (token) headers.set('Authorization', `Bearer ${token}`);
   }
-
   const xsrf = xsrfToken();
   if (xsrf) {
     headers.set('X-XSRF-TOKEN', xsrf);
   }
+}
+
+export async function api<T = unknown>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const headers = new Headers(options.headers ?? {});
+  authHeaders(headers);
+  headers.set('Content-Type', 'application/json');
 
   const response = await fetch(`${API_BASE}/api/v1${path}`, {
     ...options,
@@ -104,6 +106,54 @@ export async function api<T = unknown>(
   }
 
   return payload as T;
+}
+
+export async function apiForm<T = unknown>(path: string, body: FormData, method = 'POST'): Promise<T> {
+  const headers = new Headers();
+  authHeaders(headers);
+
+  const response = await fetch(`${API_BASE}/api/v1${path}`, {
+    method,
+    headers,
+    body,
+    credentials: 'include',
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message =
+      payload.message ||
+      (Object.values(payload.errors ?? {}) as string[][])?.[0]?.[0] ||
+      'Request failed';
+    throw new Error(message);
+  }
+  return payload as T;
+}
+
+export async function apiDownload(path: string, fallbackName: string): Promise<void> {
+  const headers = new Headers();
+  authHeaders(headers);
+
+  const response = await fetch(`${API_BASE}/api/v1${path}`, {
+    headers,
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.message || 'Download failed');
+  }
+  const blob = await response.blob();
+  const disposition = response.headers.get('Content-Disposition') ?? '';
+  const match = disposition.match(/filename="?([^"]+)"?/i);
+  const filename = match?.[1] || fallbackName;
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 export async function loginRequest(

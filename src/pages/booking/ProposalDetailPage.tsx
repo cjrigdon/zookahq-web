@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../../api/client';
 import { DetailRecord } from '../../components/DetailRecord';
+import { type DocumentTemplate } from '../../lib/documents';
 
 export function ProposalDetailPage() {
   const { id } = useParams();
@@ -17,6 +18,13 @@ export function ProposalDetailPage() {
     queryFn: () => api<{ data: { data: any[] } }>('/events/events'),
     enabled: isNew,
   });
+
+  const { data: templatesData } = useQuery({
+    queryKey: ['document-available', 'event'],
+    queryFn: () => api<{ data: DocumentTemplate[] }>('/documents/available?applies_to=event'),
+  });
+  const templates = templatesData?.data ?? [];
+  const [contractTemplateId, setContractTemplateId] = useState('');
 
   const [form, setForm] = useState({
     event_id: prefEvent,
@@ -140,21 +148,40 @@ export function ProposalDetailPage() {
       })}
       actions={(record, { refresh }) =>
         !record.contract ? (
-          <button
-            type="button"
-            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm"
-            onClick={() => {
-              void api(`/booking/proposals/${record.id}/contracts`, {
-                method: 'POST',
-                body: '{}',
-              }).then((res: any) => {
-                refresh();
-                if (res?.data?.id) navigate(`/booking/contracts/${res.data.id}`);
-              });
-            }}
-          >
-            Create contract
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {templates.length > 0 ? (
+              <select
+                className="zhq-select"
+                value={contractTemplateId}
+                onChange={(e) => setContractTemplateId(e.target.value)}
+              >
+                <option value="">Default event template</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                    {template.is_default ? ' (default)' : ''}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            <button
+              type="button"
+              className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm"
+              onClick={() => {
+                void api(`/booking/proposals/${record.id}/contracts`, {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    document_template_id: contractTemplateId ? Number(contractTemplateId) : undefined,
+                  }),
+                }).then((res: any) => {
+                  refresh();
+                  if (res?.data?.id) navigate(`/booking/contracts/${res.data.id}`);
+                });
+              }}
+            >
+              Create contract
+            </button>
+          </div>
         ) : null
       }
       related={(record) => [
